@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Licencie{% endblock %}
+
+{% block body %}
+    <h1>Edit Licencie</h1>
+
+    {{ include('licencie/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_licencie_index') }}">back to list</a>
+
+    {{ include('licencie/_delete_form.html.twig') }}
+{% endblock %}
