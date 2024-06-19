@@ -3,79 +3,66 @@
 namespace App\Controller;
 
 use App\Entity\Equipe;
-use App\Form\EquipeType;
 use App\Repository\EquipeRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/equipe')]
 class EquipeController extends AbstractController
 {
-    #[Route('/', name: 'app_equipe_index', methods: ['GET'])]
+    #[Route('/equipes', name: 'equipe_index')]
     public function index(EquipeRepository $equipeRepository): Response
     {
-        return $this->render('equipe/index.html.twig', [
-            'equipes' => $equipeRepository->findAll(),
-        ]);
-    }
+        $equipes = $equipeRepository->findAll();
 
-    #[Route('/new', name: 'app_equipe_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $equipe = new Equipe();
-        $form = $this->createForm(EquipeType::class, $equipe);
-        $form->handleRequest($request);
+        // Calcul des statistiques pour chaque équipe
+        $stats = [];
+        foreach ($equipes as $equipe) {
+            $wins = 0;
+            $losses = 0;
+            $draws = 0;
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($equipe);
-            $entityManager->flush();
+            foreach ($equipe->getHomeGames() as $game) {
+                if ($game->getScoreHome() > $game->getScoreAway()) {
+                    $wins++;
+                } elseif ($game->getScoreHome() < $game->getScoreAway()) {
+                    $losses++;
+                } else {
+                    $draws++;
+                }
+            }
 
-            return $this->redirectToRoute('app_equipe_index', [], Response::HTTP_SEE_OTHER);
+            foreach ($equipe->getAwayGames() as $game) {
+                if ($game->getScoreAway() > $game->getScoreHome()) {
+                    $wins++;
+                } elseif ($game->getScoreAway() < $game->getScoreHome()) {
+                    $losses++;
+                } else {
+                    $draws++;
+                }
+            }
+
+            $stats[$equipe->getId()] = [
+                'wins' => $wins,
+                'losses' => $losses,
+                'draws' => $draws,
+            ];
         }
 
-        return $this->render('equipe/new.html.twig', [
-            'equipe' => $equipe,
-            'form' => $form,
+        return $this->render('equipe/index.html.twig', [
+            'equipes' => $equipes,
+            'stats' => $stats,
         ]);
     }
 
-    #[Route('/{id}', name: 'app_equipe_show', methods: ['GET'])]
+    #[Route('/equipes/{id}', name: 'equipe_show')]
     public function show(Equipe $equipe): Response
     {
+        $games = array_merge($equipe->getHomeGames()->toArray(), $equipe->getAwayGames()->toArray());
+
         return $this->render('equipe/show.html.twig', [
             'equipe' => $equipe,
+            'games' => $games,
         ]);
-    }
-
-    #[Route('/{id}/edit', name: 'app_equipe_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Equipe $equipe, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(EquipeType::class, $equipe);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_equipe_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('equipe/edit.html.twig', [
-            'equipe' => $equipe,
-            'form' => $form,
-        ]);
-    }
-
-    #[Route('/{id}', name: 'app_equipe_delete', methods: ['POST'])]
-    public function delete(Request $request, Equipe $equipe, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete'.$equipe->getId(), $request->getPayload()->getString('_token'))) {
-            $entityManager->remove($equipe);
-            $entityManager->flush();
-        }
-
-        return $this->redirectToRoute('app_equipe_index', [], Response::HTTP_SEE_OTHER);
     }
 }

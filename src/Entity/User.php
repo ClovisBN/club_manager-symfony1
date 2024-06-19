@@ -30,6 +30,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\JoinColumn(nullable: false)]
     private ?Role $role = null;
 
+    #[ORM\ManyToOne(targetEntity: Equipe::class, inversedBy: 'users')]
+    private ?Equipe $equipe = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -76,6 +79,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRole(?Role $role): self
     {
         $this->role = $role;
+        return $this;
+    }
+
+    public function getEquipe(): ?Equipe
+    {
+        return $this->equipe;
+    }
+
+    public function setEquipe(?Equipe $equipe): self
+    {
+        $this->equipe = $equipe;
         return $this;
     }
 

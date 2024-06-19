@@ -2,11 +2,10 @@
 
 namespace App\Entity;
 
-use App\Repository\EquipeRepository;
+use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
-use Doctrine\ORM\Mapping as ORM;
+use App\Repository\EquipeRepository;
 
 #[ORM\Entity(repositoryClass: EquipeRepository::class)]
 class Equipe
@@ -19,22 +18,31 @@ class Equipe
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: 'text')]
     private ?string $description = null;
 
     #[ORM\ManyToOne(inversedBy: 'equipes')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Section $section = null;
 
-    /**
-     * @var Collection<int, Licencie>
-     */
-    #[ORM\OneToMany(targetEntity: Licencie::class, mappedBy: 'equipe', orphanRemoval: true)]
-    private Collection $licencies;
+    #[ORM\ManyToOne(inversedBy: 'equipes')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Club $club = null;
+
+    #[ORM\OneToMany(mappedBy: 'equipe', targetEntity: User::class)]
+    private Collection $users;
+
+    #[ORM\OneToMany(mappedBy: 'homeTeam', targetEntity: Game::class, orphanRemoval: true)]
+    private Collection $homeGames;
+
+    #[ORM\OneToMany(mappedBy: 'awayTeam', targetEntity: Game::class, orphanRemoval: true)]
+    private Collection $awayGames;
 
     public function __construct()
     {
-        $this->licencies = new ArrayCollection();
+        $this->users = new ArrayCollection();
+        $this->homeGames = new ArrayCollection();
+        $this->awayGames = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -50,7 +58,6 @@ class Equipe
     public function setName(string $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -62,7 +69,6 @@ class Equipe
     public function setDescription(string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -74,34 +80,92 @@ class Equipe
     public function setSection(?Section $section): static
     {
         $this->section = $section;
-
         return $this;
     }
 
-    /**
-     * @return Collection<int, Licencie>
-     */
-    public function getLicencies(): Collection
+    public function getClub(): ?Club
     {
-        return $this->licencies;
+        return $this->club;
     }
 
-    public function addLicency(Licencie $licency): static
+    public function setClub(?Club $club): static
     {
-        if (!$this->licencies->contains($licency)) {
-            $this->licencies->add($licency);
-            $licency->setEquipe($this);
+        $this->club = $club;
+        return $this;
+    }
+
+    public function getUsers(): Collection
+    {
+        return $this->users;
+    }
+
+    public function addUser(User $user): static
+    {
+        if (!$this->users->contains($user)) {
+            $this->users->add($user);
+            $user->setEquipe($this);
         }
 
         return $this;
     }
 
-    public function removeLicency(Licencie $licency): static
+    public function removeUser(User $user): static
     {
-        if ($this->licencies->removeElement($licency)) {
-            // set the owning side to null (unless already changed)
-            if ($licency->getEquipe() === $this) {
-                $licency->setEquipe(null);
+        if ($this->users->removeElement($user)) {
+            if ($user->getEquipe() === $this) {
+                $user->setEquipe(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getHomeGames(): Collection
+    {
+        return $this->homeGames;
+    }
+
+    public function addHomeGame(Game $game): static
+    {
+        if (!$this->homeGames->contains($game)) {
+            $this->homeGames->add($game);
+            $game->setHomeTeam($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHomeGame(Game $game): static
+    {
+        if ($this->homeGames->removeElement($game)) {
+            if ($game->getHomeTeam() === $this) {
+                $game->setHomeTeam(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getAwayGames(): Collection
+    {
+        return $this->awayGames;
+    }
+
+    public function addAwayGame(Game $game): static
+    {
+        if (!$this->awayGames->contains($game)) {
+            $this->awayGames->add($game);
+            $game->setAwayTeam($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAwayGame(Game $game): static
+    {
+        if ($this->awayGames->removeElement($game)) {
+            if ($game->getAwayTeam() === $this) {
+                $game->setAwayTeam(null);
             }
         }
 

@@ -1,37 +1,36 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Equipe index{% endblock %}
+{% block title %}Equipes
+{% endblock %}
 
 {% block body %}
-    <h1>Equipe index</h1>
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for equipe in equipes %}
-            <tr>
-                <td>{{ equipe.id }}</td>
-                <td>{{ equipe.name }}</td>
-                <td>{{ equipe.description }}</td>
-                <td>
-                    <a href="{{ path('app_equipe_show', {'id': equipe.id}) }}">show</a>
-                    <a href="{{ path('app_equipe_edit', {'id': equipe.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="4">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-    <a href="{{ path('app_equipe_new') }}">Create new</a>
+	<h1>Liste des équipes</h1>
+	<table>
+		<thead>
+			<tr>
+				<th>Nom</th>
+				<th>Victoires</th>
+				<th>Défaites</th>
+				<th>Matchs nuls</th>
+				<th>Actions</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for equipe in equipes %}
+				<tr>
+					<td>{{ equipe.name }}</td>
+					<td>{{ stats[equipe.id].wins }}</td>
+					<td>{{ stats[equipe.id].losses }}</td>
+					<td>{{ stats[equipe.id].draws }}</td>
+					<td>
+						<a href="{{ path('equipe_show', {'id': equipe.id}) }}">Voir les détails</a>
+					</td>
+				</tr>
+			{% else %}
+				<tr>
+					<td colspan="5">Aucune équipe trouvée</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
 {% endblock %}

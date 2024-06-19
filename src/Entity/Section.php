@@ -2,11 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\SectionRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use App\Repository\SectionRepository;
 
 #[ORM\Entity(repositoryClass: SectionRepository::class)]
 class Section
@@ -26,10 +26,7 @@ class Section
     #[ORM\JoinColumn(nullable: false)]
     private ?Club $club = null;
 
-    /**
-     * @var Collection<int, Equipe>
-     */
-    #[ORM\OneToMany(targetEntity: Equipe::class, mappedBy: 'section', orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'section', targetEntity: Equipe::class, orphanRemoval: true)]
     private Collection $equipes;
 
     public function __construct()
@@ -50,7 +47,6 @@ class Section
     public function setName(string $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -62,7 +58,6 @@ class Section
     public function setDescription(string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -74,13 +69,9 @@ class Section
     public function setClub(?Club $club): static
     {
         $this->club = $club;
-
         return $this;
     }
 
-    /**
-     * @return Collection<int, Equipe>
-     */
     public function getEquipes(): Collection
     {
         return $this->equipes;
@@ -99,7 +90,6 @@ class Section
     public function removeEquipe(Equipe $equipe): static
     {
         if ($this->equipes->removeElement($equipe)) {
-            // set the owning side to null (unless already changed)
             if ($equipe->getSection() === $this) {
                 $equipe->setSection(null);
             }
