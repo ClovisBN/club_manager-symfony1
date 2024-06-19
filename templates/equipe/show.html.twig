@@ -33,48 +33,42 @@
 	</table>
 
 	<h2>Graphique des résultats</h2>
-	<canvas id="gamesChart"></canvas>
+	<canvas id="gamesChart" width="400" height="200"></canvas>
+	{{ render_chart(chart) }}
 {% endblock %}
 
 {% block javascripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-	var ctx = document.getElementById('gamesChart').getContext('2d');
-	        var gamesChart = new Chart(ctx, {
-	            type: 'line',
-	            data: {
-	                labels: [
-	                    {% for game in games %}
-	                        "{{ game.dateTime|date('d/m/Y') }}",
-	                    {% endfor %}
-	                ],
-	                datasets: [{
-	                    label: 'Score à domicile',
-	                    data: [
-	                        {% for game in games %}
-	                            {{ game.scoreHome }},
-	                        {% endfor %}
-	                    ],
-	                    borderColor: 'rgba(75, 192, 192, 1)',
-	                    borderWidth: 1
-	                }, {
-	                    label: 'Score à l'extérieur',
-	                    data: [
-	                        {% for game in games %}
-	                            {{ game.scoreAway }},
-	                        {% endfor %}
-	                    ],
-	                    borderColor: 'rgba(153, 102, 255, 1)',
-	                    borderWidth: 1
-	                }]
-	            },
-	            options: {
-	                scales: {
-	                    y: {
-	                        beginAtZero: true
-	                    }
-	                }
-	            }
-	        });
-	    </script>
-	{% endblock %}
+	{{ parent() }}
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+var ctx = document.getElementById('gamesChart').getContext('2d');
+var gamesChart = new Chart(ctx, {
+type: 'line',
+data: {
+labels: [{% for game in games %}"{{ game.dateTime|date('d/m/Y') }}",{% endfor %}],
+datasets: [
+{
+label: 'Score à domicile',
+data: [{% for game in games %}{{ game.scoreHome }},{% endfor %}],
+borderColor: 'rgba(75, 192, 192, 1)',
+borderWidth: 1
+}, {
+label: 'Score à l\'extérieur',
+data: [{% for game in games %}{{ game.scoreAway }},{% endfor %}],
+borderColor: 'rgba(153, 102, 255, 1)',
+borderWidth: 1
+}
+]
+},
+options: {
+scales: {
+y: {
+beginAtZero: true
+}
+}
+}
+});
+});
+	</script>
+{% endblock %}

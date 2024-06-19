@@ -1,5 +1,6 @@
 <?php
 
+// src/Controller/EquipeController.php
 namespace App\Controller;
 
 use App\Entity\Equipe;
@@ -7,6 +8,8 @@ use App\Repository\EquipeRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
+use Symfony\UX\Chartjs\Model\Chart;
 
 class EquipeController extends AbstractController
 {
@@ -56,13 +59,52 @@ class EquipeController extends AbstractController
     }
 
     #[Route('/equipes/{id}', name: 'equipe_show')]
-    public function show(Equipe $equipe): Response
+    public function show(Equipe $equipe, ChartBuilderInterface $chartBuilder): Response
     {
         $games = array_merge($equipe->getHomeGames()->toArray(), $equipe->getAwayGames()->toArray());
+
+        $dates = [];
+        $homeScores = [];
+        $awayScores = [];
+
+        foreach ($games as $game) {
+            $dates[] = $game->getDateTime()->format('d/m/Y');
+            $homeScores[] = $game->getScoreHome();
+            $awayScores[] = $game->getScoreAway();
+        }
+
+        $chart = $chartBuilder->createChart(Chart::TYPE_LINE);
+        $chart->setData([
+            'labels' => $dates,
+            'datasets' => [
+                [
+                    'label' => 'Score à domicile',
+                    'backgroundColor' => 'rgb(75, 192, 192)',
+                    'borderColor' => 'rgb(75, 192, 192)',
+                    'data' => $homeScores,
+                ],
+                [
+                    'label' => 'Score à l\'extérieur',
+                    'backgroundColor' => 'rgb(153, 102, 255)',
+                    'borderColor' => 'rgb(153, 102, 255)',
+                    'data' => $awayScores,
+                ],
+            ],
+        ]);
+
+        $chart->setOptions([
+            'scales' => [
+                'y' => [
+                    'beginAtZero' => true,
+                ],
+            ],
+        ]);
 
         return $this->render('equipe/show.html.twig', [
             'equipe' => $equipe,
             'games' => $games,
+            'chart' => $chart,
         ]);
     }
 }
+
