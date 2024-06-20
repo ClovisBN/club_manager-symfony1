@@ -1,18 +1,19 @@
 <?php
-
 // src/Controller/EquipeController.php
 namespace App\Controller;
 
+use App\Entity\Game;
 use App\Entity\Equipe;
+use Symfony\UX\Chartjs\Model\Chart;
 use App\Repository\EquipeRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
-use Symfony\UX\Chartjs\Model\Chart;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class EquipeController extends AbstractController
 {
+    
     #[Route('/equipes', name: 'equipe_index')]
     public function index(EquipeRepository $equipeRepository): Response
     {
@@ -35,16 +36,6 @@ class EquipeController extends AbstractController
                 }
             }
 
-            foreach ($equipe->getAwayGames() as $game) {
-                if ($game->getScoreAway() > $game->getScoreHome()) {
-                    $wins++;
-                } elseif ($game->getScoreAway() < $game->getScoreHome()) {
-                    $losses++;
-                } else {
-                    $draws++;
-                }
-            }
-
             $stats[$equipe->getId()] = [
                 'wins' => $wins,
                 'losses' => $losses,
@@ -61,50 +52,66 @@ class EquipeController extends AbstractController
     #[Route('/equipes/{id}', name: 'equipe_show')]
     public function show(Equipe $equipe, ChartBuilderInterface $chartBuilder): Response
     {
-        $games = array_merge($equipe->getHomeGames()->toArray(), $equipe->getAwayGames()->toArray());
+        // Récupérer uniquement les matchs à domicile
+        $games = $equipe->getHomeGames()->toArray();
 
+        // graphique
         $dates = [];
         $homeScores = [];
         $awayScores = [];
+        $wins = 0;
+        $totalGames = count($games);
 
+        // Parcourt chaque équipe dans $games
         foreach ($games as $game) {
+            // ajout des données dans les tableaux
             $dates[] = $game->getDateTime()->format('d/m/Y');
             $homeScores[] = $game->getScoreHome();
             $awayScores[] = $game->getScoreAway();
+
+            // Calcul des victoires
+            if ($game->getScoreHome() > $game->getScoreAway()) {
+                $wins++;
+            }
         }
 
+        $winrate = $totalGames > 0 ? ($wins / $totalGames) * 100 : 0;
+
+        // Création du graphique Type Line
         $chart = $chartBuilder->createChart(Chart::TYPE_LINE);
         $chart->setData([
+            // Les dates
             'labels' => $dates,
+            // les Scores par équipe
             'datasets' => [
                 [
                     'label' => 'Score à domicile',
                     'backgroundColor' => 'rgb(75, 192, 192)',
                     'borderColor' => 'rgb(75, 192, 192)',
                     'data' => $homeScores,
+                    'tension' => 0.4,
                 ],
                 [
                     'label' => 'Score à l\'extérieur',
                     'backgroundColor' => 'rgb(153, 102, 255)',
                     'borderColor' => 'rgb(153, 102, 255)',
                     'data' => $awayScores,
+                    'tension' => 0.4,
                 ],
             ],
         ]);
 
+        // Options du graphique
         $chart->setOptions([
-            'scales' => [
-                'y' => [
-                    'beginAtZero' => true,
-                ],
-            ],
+            'maintainAspectRatio' => false,
         ]);
 
+        // rendu de la vue
         return $this->render('equipe/show.html.twig', [
             'equipe' => $equipe,
             'games' => $games,
             'chart' => $chart,
+            'winrate' => $winrate,
         ]);
     }
 }
-

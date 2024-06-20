@@ -3,7 +3,115 @@
 {% block title %}Welcome to the Club Omnisport
 {% endblock %}
 
+{% block stylesheets %}
+	{{ parent() }}
+{% endblock %}
+
 {% block body %}
-	<h1>Welcome to the Club Omnisport</h1>
-	<p>This is the homepage of your club. Explore the sections, teams, and members.</p>
+	<h1 class="timeline-title">Bienvenue a OmniSport</h1>
+
+	<h2 class="timeline-title2">Les événment</h2>
+	<div class="timeline" id="timeline">
+		{% for game in games %}
+			<div class="timeline-item {{ loop.index % 2 == 0 ? 'right' : 'left' }}">
+				<a class="link-games" href="{{ path('game_show', {'id': game.id}) }}">
+					<div class="timeline-content">
+						<h3>{{ game.dateTime|date('d/m/Y H:i') }}</h3>
+						<p>
+							<strong>{{ game.homeTeam.name }}</strong>
+							vs
+							<strong>{{ game.awayTeam.name }}</strong>
+						</p>
+						<p>Score:
+							{{ game.scoreHome }}
+							-
+							{{ game.scoreAway }}</p>
+						<p>{{ game.id }}</p>
+					</div>
+				</a>
+			</div>
+		{% endfor %}
+	</div>
+	<div id="loading" style="text-align:center; padding:10px;">Chargement...</div>
+	<div id="no-more-content" style="text-align:center; padding:10px; display:none;">Plus aucun contenu</div>
+{% endblock %}
+
+{% block javascripts %}
+	{{ parent() }}
+	<script src="{{ asset('build/app.js') }}"></script>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+let page = 2; // Start from the second page since the first page is already loaded
+const limit = 20;
+const loading = document.getElementById('loading');
+let hasMoreGames = true;
+
+const observer = new IntersectionObserver(entries => {
+if (entries[0].isIntersecting && hasMoreGames) {
+loadMoreGames();
+}
+});
+
+observer.observe(loading);
+
+function loadMoreGames() {
+const timeout = setTimeout(() => {
+refreshStimulus();
+}, 500);
+
+fetch(`/api/games?page=${page}&limit=${limit}`).then(response => response.json()).then(data => {
+clearTimeout(timeout); // Clear the timeout if the request completes in time
+const timeline = document.getElementById('timeline');
+data.games.forEach((game, index) => {
+const item = document.createElement('div');
+item.className = `timeline-item ${
+(page * limit + index) % 2 === 0 ? 'right' : 'left'
+}`;
+item.innerHTML = `
+                        <a class="link-games" href="/game/${
+game.id
+}">
+                            <div class="timeline-content">
+                                <h3>${
+game.dateTime
+}</h3>
+                                <p><strong>${
+game.homeTeam
+}</strong> vs <strong>${
+game.awayTeam
+}</strong></p>
+                                <p>Score: ${
+game.scoreHome
+} - ${
+game.scoreAway
+}</p>
+                            </div>
+                        </a>
+                        <p>${
+game.id
+}</p>
+                    `;
+timeline.appendChild(item);
+});
+
+if (!data.hasMore) {
+observer.unobserve(loading);
+loading.style.display = 'none';
+hasMoreGames = false;
+}
+
+page++;
+}).catch(error => {
+console.error('Error loading more games:', error);
+clearTimeout(timeout); // Clear the timeout in case of error to avoid unnecessary refresh
+});
+}
+
+function refreshStimulus() {
+const application = Stimulus.Application.start();
+application.start();
+}
+});
+	</script>
 {% endblock %}

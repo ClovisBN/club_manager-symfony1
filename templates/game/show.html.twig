@@ -1,0 +1,26 @@
+{# templates/game/show.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails du Match
+{% endblock %}
+
+{% block body %}
+	<h1>Détails du Match</h1>
+	<p>
+		<strong>Date :</strong>
+		{{ game.dateTime|date('d/m/Y H:i') }}</p>
+	<p>
+		<strong>Équipe à domicile :</strong>
+		{{ game.homeTeam.name }}</p>
+	<p>
+		<strong>Équipe à l'extérieur :</strong>
+		{{ game.awayTeam.name }}</p>
+	<p>
+		<strong>Score :</strong>
+		{{ game.scoreHome }}
+		-
+		{{ game.scoreAway }}</p>
+	<p>
+		<button class="button-back" onclick="history.back()">Retour à la page précédente</button>
+	</p>
+{% endblock %}

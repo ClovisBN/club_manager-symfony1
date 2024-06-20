@@ -8,9 +8,15 @@
 		</title>
 		<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>🎽</text></svg>">
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.css" integrity="sha512-/zs32ZEJh+/EO2N1b0PEdoA10JkdC3zJ8L5FTiQu82LR9S/rOQNfQN7U59U9BC12swNeRAz3HSzIL2vpp4fv3w==" crossorigin="anonymous">
+
 		{% block stylesheets %}
-            {{ encore_entry_link_tags('app') }}
+			{{ encore_entry_link_tags('app') }}
+
 			{# Place to include additional stylesheets #}
+		{% endblock %}
+		{% block javascripts %}
+			{{ encore_entry_script_tags('app') }}
 		{% endblock %}
 	</head>
 	<body>
@@ -47,13 +53,10 @@
 
 		<div class="container mt-4"> {% block body %}{% endblock %}
 			</div>
+			<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 			<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
 			<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 			<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-			{% block javascripts %}
-            {{ encore_entry_script_tags('app') }}
-				{# Place to include additional JavaScript files #}
-			{% endblock %}
 		</body>
 	</html>

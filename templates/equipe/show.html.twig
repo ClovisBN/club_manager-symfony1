@@ -6,10 +6,11 @@
 
 {% block body %}
 	<h1>Détails de l'équipe
-		{{ equipe.name }}</h1>
+		{{ equipe.name }}
+		(Winrate:
+		{{ winrate|number_format(2) }}%)</h1>
 
-	<h2>Matchs</h2>
-	<table>
+	<table class="table">
 		<thead>
 			<tr>
 				<th>Date</th>
@@ -20,55 +21,35 @@
 		</thead>
 		<tbody>
 			{% for game in games %}
+				{% set scoreClass = '' %}
+				{% if game.scoreHome > game.scoreAway %}
+					{% set scoreClass = 'bg-success' %}
+				{% elseif game.scoreHome < game.scoreAway %}
+					{% set scoreClass = 'bg-danger' %}
+				{% endif %}
+
 				<tr>
-					<td>{{ game.dateTime|date('d/m/Y H:i') }}</td>
-					<td>{{ game.homeTeam.name }}</td>
-					<td>{{ game.scoreHome }}
-						-
-						{{ game.scoreAway }}</td>
-					<td>{{ game.awayTeam.name }}</td>
+					<a class="link-games" href="{{ path('game_show', {'id': game.id}) }}">
+						<td>{{ game.dateTime|date('d/m/Y H:i') }}</td>
+						<td>{{ game.homeTeam.name }}</td>
+						<td class="{{ scoreClass }}">
+							<a class="link-games" href="{{ path('game_show', {'id': game.id}) }}">
+								{{ game.scoreHome }}
+								-
+								{{ game.scoreAway }}
+							</a>
+						</td>
+						<td>{{ game.awayTeam.name }}</td>
+					</a>
 				</tr>
 			{% endfor %}
 		</tbody>
 	</table>
 
-	<h2>Graphique des résultats</h2>
-	<canvas id="gamesChart" width="400" height="200"></canvas>
-	{{ render_chart(chart) }}
-{% endblock %}
+	<h2>Graphique des Match</h2>
 
-{% block javascripts %}
-	{{ parent() }}
-	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-var ctx = document.getElementById('gamesChart').getContext('2d');
-var gamesChart = new Chart(ctx, {
-type: 'line',
-data: {
-labels: [{% for game in games %}"{{ game.dateTime|date('d/m/Y') }}",{% endfor %}],
-datasets: [
-{
-label: 'Score à domicile',
-data: [{% for game in games %}{{ game.scoreHome }},{% endfor %}],
-borderColor: 'rgba(75, 192, 192, 1)',
-borderWidth: 1
-}, {
-label: 'Score à l\'extérieur',
-data: [{% for game in games %}{{ game.scoreAway }},{% endfor %}],
-borderColor: 'rgba(153, 102, 255, 1)',
-borderWidth: 1
-}
-]
-},
-options: {
-scales: {
-y: {
-beginAtZero: true
-}
-}
-}
-});
-});
-	</script>
+	<div style="height: 500px; width: 100%; z-index: 100;">
+		{{ render_chart(chart) }}
+	</div>
+
 {% endblock %}
